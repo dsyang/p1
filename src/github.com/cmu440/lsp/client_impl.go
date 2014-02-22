@@ -2,10 +2,17 @@
 
 package lsp
 
-import "errors"
+import (
+	"errors"
+	"time"
+	"fmt"
+	"github.com/cmu440/lspnet"
+	"container/list"
+)
 
 type client struct {
-	// TODO: implement this!
+	conn *lspnet.UDPConn
+	epoch_buffer list.List
 }
 
 // NewClient creates, initiates, and returns a new client. This function
@@ -19,6 +26,27 @@ type client struct {
 // hostport is a colon-separated string identifying the server's host address
 // and port number (i.e., "localhost:9999").
 func NewClient(hostport string, params *Params) (Client, error) {
+	fmt.Println("Client params: %s\n", params);
+	cli := new(client);
+	if addr, err := lspnet.ResolveUDPAddr("udp", hostport); err != nil {
+		fmt.Println("EROR", err)
+		return nil, err
+	} else if conn, err := lspnet.DialUDP("udp", nil, addr); err != nil {
+		fmt.Println("EROR", err)
+		return nil, err
+	} else {
+		cli.conn = conn
+	}
+
+	epoch_ticker := time.NewTicker(time.Millisecond *
+		time.Duration(params.EpochMillis));
+
+	go func() {
+		for t := range epoch_ticker.C {
+			fmt.Println("Ticked: ", t)
+		}
+	}()
+
 	return nil, errors.New("not yet implemented")
 }
 
